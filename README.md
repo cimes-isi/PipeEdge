@@ -64,6 +64,22 @@ System dependencies required for runtime monitoring:
 * [EnergyMon](https://github.com/energymon/energymon) - with a system-appropriate "default" library (which may have transitive dependencies)
 
 
+### ImageNet Dataset
+
+The ILSVRC 2012 dataset (a.k.a. ImageNet-1K) cannot be downloaded automatically since access requires registration.
+Register at [image-net.org](https://image-net.org/download-images.php), then download the training (`ILSVRC2012_img_train.tar`: \~138 GB) and validation (`ILSVRC2012_img_val.tar`: \~6.3 GB) image archives along with the devkit archive (`ILSVRC2012_devkit_t12.tar.gz`) and place them in a common directory.
+
+The archives must be preprocessed to create a usable directory structure.
+If you placed the archives in a directory called `ImageNet`:
+
+```sh
+python tools/imagenet_preprocess.py ImageNet
+```
+
+The script may take several minutes or more to run, depending on the storage disk speed.
+Alternatively, there are Bash script examples online for achieving the same result.
+
+
 ## Usage
 
 For full usage help, run:
