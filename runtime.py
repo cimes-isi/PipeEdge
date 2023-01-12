@@ -21,6 +21,7 @@ from pipeedge.quantization.basic_op import (
 )
 from pipeedge.quantization.clamp_op import clamp_banner2019_gelu, clamp_banner2019_laplace
 from pipeedge.sched.scheduler import sched_pipeline
+import bzip2
 import devices
 import model_cfg
 import monitoring
@@ -476,7 +477,11 @@ def run_pipeline_p2p(world_size: int, rank: int, model_name: str, model_file: Op
                 elif quant_impl == ADAPTIVE_QUANT_HEURISTIC2:
                     model.register_forward_hook(forward_hook_set_quant_bandwidth_heuristic_2)
                 model.register_forward_hook(forward_hook_quant_encode)
+                if os.getenv(bzip2.ENV_BZIP2_BINARY) is not None:
+                    model.register_forward_hook(bzip2.forward_hook_bzip2_compress)
             if stage != 0:
+                if os.getenv(bzip2.ENV_BZIP2_BINARY) is not None:
+                    model.register_forward_pre_hook(bzip2.forward_pre_bzip2_decompress)
                 model.register_forward_pre_hook(forward_pre_hook_quant_decode)
             model.register_forward_pre_hook(forward_pre_hook_monitor)
             model.register_forward_pre_hook(devices.forward_pre_hook_to_device)
@@ -560,6 +565,10 @@ def run_pipeline_rpc(world_size: int, rank: int, model_name: str, model_file: Op
             pipeline.rpc_register_forward_hook(devices.forward_hook_to_cpu)
             pipeline.rpc_register_forward_hook(forward_hook_monitor)
             pipeline.rpc_register_forward_hook(forward_hook_quant_encode, last=False)
+            if os.getenv(bzip2.ENV_BZIP2_BINARY) is not None:
+                pipeline.rpc_register_forward_hook(bzip2.forward_hook_bzip2_compress, last=False)
+                pipeline.rpc_register_forward_pre_hook(bzip2.forward_pre_bzip2_decompress,
+                                                       first=False)
             pipeline.rpc_register_forward_pre_hook(forward_pre_hook_quant_decode, first=False)
             pipeline.rpc_register_forward_pre_hook(forward_pre_hook_monitor)
             pipeline.rpc_register_forward_pre_hook(devices.forward_pre_hook_to_device)
